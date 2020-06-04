@@ -21,8 +21,10 @@ void UDoorMechanism::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitialRotation = GetOwner()->GetActorRotation().Yaw;
-	CurrentRotation = InitialRotation;
+	InitialRotation = GetOwner()->GetActorRotation();
+	InitialYaw = GetOwner()->GetActorRotation().Yaw;
+	CurrentYaw = InitialYaw;
+	TargetYaw += InitialYaw;
 	// ...
 	
 }
@@ -32,9 +34,18 @@ void UDoorMechanism::BeginPlay()
 void UDoorMechanism::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	UE_LOG(LogTemp, Warning, TEXT("Rotation: %.2f"), CurrentRotation);
-	
+	if (PressurePlate->IsOverlappingActor(ActorToOpenDoor))
+	{
+		OpenDoor(DeltaTime);
+	}
 	// ...
+}
+
+void UDoorMechanism::OpenDoor(float DeltaTime) 
+{
+	//UE_LOG(LogTemp, Warning, TEXT("currentYaw: %.2f") ,CurrentYaw);
+	CurrentYaw = FMath::FInterpConstantTo(CurrentYaw, TargetYaw, DeltaTime, 60.f);
+	FRotator newRotation(InitialRotation.Pitch, CurrentYaw, InitialRotation.Roll);
+	GetOwner()->SetActorRotation(newRotation);
 }
 
